@@ -1,17 +1,92 @@
 import styled from "styled-components";
+import { auth, provider } from "../firebase";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom"
+import { signInWithPopup } from "firebase/auth";
+import { selectUserName, selectUserEmail, selectUserPhoto, setUserLoginDetails, setSignOutState } from "../features/user/userSlice";
+import { useEffect } from "react";
 
 const Header = (props) => {
-    return <Nav>
-        <Logo>
-            <img src="/images/logo.svg" alt="" />
-        </Logo>
-        <NavMenu>
+  const disaptch = useDispatch();
+  const navigate = useNavigate();
+  const userName = useSelector(selectUserName);
+  const userPhoto = useSelector(selectUserPhoto);
+
+  useEffect(() => {
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        setUser(user);
+        navigate("/home");
+      }
+    })
+  }, [userName]);
+
+  const handleAuth = () => {
+    if (!userName) {
+      signInWithPopup(auth, provider).then((result) => {
+        setUser(result.user)
+      }).catch(error => {
+        console.log(error);
+      })
+    } else if (userName) {
+      auth.signOut().then(() => {
+        disaptch(setSignOutState());
+        navigate("/")
+      }).catch((err) => alert(err.message));
+    }
+  }
+  const setUser = (user) => {
+    disaptch(setUserLoginDetails({
+      name: user.displayName,
+      email: user.email,
+      photo: user.photoURL
+    }))
+  }
+  return <Nav>
+    <Logo>
+      <img src="/images/logo.svg" alt="" />
+    </Logo>
+
+    {
+      !userName ? <Login onClick={handleAuth}>Login</Login>
+        :
+        <>
+          <NavMenu>
             <a href="/home">
-                <img src="/images/home-icon.svg" alt="HOME" />
-                <span>HOME</span>
+              <img src="/images/home-icon.svg" alt="HOME" />
+              <span>HOME</span>
             </a>
-        </NavMenu>
-    </Nav>
+            <a>
+              <img src="/images/search-icon.svg" alt="Search" />
+              <span>SEARCH</span>
+            </a>
+            <a>
+              <img src="/images/watchlist-icon.svg" alt="WATCHLIST" />
+              <span>WATCHLIST</span>
+            </a>
+            <a>
+              <img src="/images/original-icon.svg" alt="ORIGINALS" />
+              <span>ORIGINALS</span>
+            </a>
+            <a>
+              <img src="/images/movie-icon.svg" alt="MOVIES" />
+              <span>MOVIES</span>
+            </a>
+            <a>
+              <img src="/images/series-icon.svg" alt="SERIES" />
+              <span>SERIES</span>
+            </a>
+          </NavMenu>
+          <SignOut>
+            <UserImg src={userPhoto} alt={userName} />
+            <DropDown>
+              <span onClick={handleAuth}>Sign out</span>
+            </DropDown>
+          </SignOut>
+        </>
+    }
+    {/* <Login onClick={handleAuth}>Login</Login> */}
+  </Nav>
 }
 
 const Nav = styled.nav`
@@ -108,5 +183,58 @@ const NavMenu = styled.div`
 /* @media (max-width: 768px){
     display: none;
 } */
+
+const Login = styled.a`
+  background-color: regba(0,0,0,0.6);
+  padding: 8px 16px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  border:1px solid #f9f9f9;
+  border-radius: 4px;
+  transition: all .2s ease 0s;
+
+  &:hover{
+    background-color: #f9f9f9;
+    color: #000000;
+    border-color: transparent;
+  }
+`;
+const UserImg = styled.img`
+  height: 100%;
+`
+const DropDown = styled.div`
+  position: absolute;
+  top:48px;
+  right:0px;
+  background: rgb(19,19,19);
+  border: 1px solid rgba(151,151,151,0.34);
+  border-radius: 4px;
+  letter-spacing: 3px;
+  box-shadow: rgb(0 0 0 / 50%) 0px 0px 18px;
+  padding: 10px;
+  font-size: 14px;
+  width: 100px;
+  opacity: 0;
+`;
+const SignOut = styled.div`
+  position:relative;
+  display: flex;
+  height: 48px;
+  width: 48px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  ${UserImg} {
+    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+  }
+  &:hover {
+    ${DropDown}{
+      opacity: 1;
+      transition-duration: 1s;
+    }
+  }
+`;
 
 export default Header;
