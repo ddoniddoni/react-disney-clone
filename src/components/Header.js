@@ -1,9 +1,9 @@
 import styled from "styled-components";
-import { auth, provider } from "../firebase";
+import { auth, provider } from "../firebase.config";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom"
 import { signInWithPopup } from "firebase/auth";
-import { selectUserName, selectUserEmail, selectUserPhoto, setUserLoginDetails, setSignOutState } from "../features/user/userSlice";
+import { selectUserName, selectUserPhoto, setUserLoginDetails, setSignOutState } from "../features/user/userSlice";
 import { useEffect } from "react";
 
 const Header = (props) => {

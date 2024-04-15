@@ -4,7 +4,6 @@ const Home = (props) => {
   return (
     <Container>
       <ImgSlider />
-
     </Container>
   );
 };
